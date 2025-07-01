@@ -31,7 +31,8 @@ const authController = {
             const user = {
                 id: data._id,
                 name: data.name,
-                email: data.email
+                email: data.email,
+                role :data.role? data.role:'admin',// why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
             };
 
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
@@ -88,7 +89,8 @@ const authController = {
             const user = new Users({
                 email: username,
                 password: encryptedPassword,
-                name: name
+                name: name,
+                role :data.role? data.role:'admin',// This ensure backward compatibility why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
             });
 
             await user.save();
@@ -153,7 +155,8 @@ const authController = {
             const user = {
                 id: data._id ? data._id : googleId,
                 username: email,
-                name: name
+                name: name,
+                role :data.role? data.role:'admin',   // why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
             };
 
             // ✅ Reuse token logic

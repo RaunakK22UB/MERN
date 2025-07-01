@@ -36,11 +36,11 @@ create: async(request,response)=>{
         const hashedPassword= await bcrypt.hash(temporaryPassword,10);
 
         const user = await Users.create({
-            email:email,
-            password:hashedPassword,
-            name:name,
-            role:role,
-            adminId:request.user.id
+            email:  email,
+            password:  hashedPassword,
+            name:   name,
+            role:  role,
+            adminId:  request.user.id
         });
         try{
             await send(email,'Affilated++ Temporary Password',`yousr password is ${temporaryPassword}`);

@@ -33,7 +33,7 @@ const UsersSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       index: true
-   },
+   }
 });
 
 module.exports = mongoose.model('Users', UsersSchema);
