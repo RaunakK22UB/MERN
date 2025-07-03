@@ -11,6 +11,7 @@ const permissions ={
         'link:read',
         'link:upddate',
         'link:delete',
+        'payment:create'                     // to create payment only admin have this access to create
     ],
     developers:[
         'link:read',

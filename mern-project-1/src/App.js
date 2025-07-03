@@ -1,5 +1,4 @@
 // src/App.js
-
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useEffect,useState } from "react";
 import axios from "axios";
@@ -25,6 +24,10 @@ import AppLayout from "./layout/AppLayout";
 import UserLayout from "./layout/UserLayout";
 
 import { SET_USER } from "./redux/user/actions";
+
+import ManageUser from './pages/manageUsers/manageUsers';
+import UnauthorizedAccess from "./components/UnauthorizeAccess";
+import ProtectedRoute from "./rbac/ProtectedRoute";
 
 function App() {
   const dispatch = useDispatch();
@@ -139,7 +142,42 @@ function App() {
           )
         }
       />
+      <Route
+       path="/manageUsers"
+  element={
+    userDetails ? (
+       <ProtectedRoute roles={['admin']}>
+       <UserLayout>
+         <ManageUser />
+       </UserLayout>
+       </ProtectedRoute>
+       
+    ) : (
+      <Navigate to="/login" />
+    )
+  }
+  />
+
+
+  <Route
+       path="/unauthorized-access"
+  element={
+    userDetails ? (
+       <UserLayout>
+         <UnauthorizedAccess />
+       </UserLayout>
+       
+    ) : (
+      <Navigate to="/login" />
+    )
+  }
+  />
+
+ 
     </Routes>
+   
+
+
   );
 }
 

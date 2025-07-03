@@ -32,7 +32,10 @@ const authController = {
                 id: data._id,
                 name: data.name,
                 email: data.email,
-                role :data.role? data.role:'admin',// why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
+                role :data.role? data.role:'admin', // why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
+                adminId:data.adminId,
+                credits:data.credits
+               
             };
 
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
@@ -59,16 +62,17 @@ const authController = {
     },
 
     // ------------------ IS USER LOGGED IN ------------------
-    isUserLoggedIn: (request, response) => {
+    isUserLoggedIn: async(request, response) => {
         const token = request.cookies.jwtToken;
         if (!token) {
             return response.status(401).json({ message: 'User is not logged in' });
         }
 
-        jwt.verify(token, secret, (err, user) => {
+        jwt.verify(token, secret, async(err, user) => {
             if (err) {
                 return response.status(401).json({ message: 'Invalid token' });
             } else {
+                const latestUserDeatils = await Users.findById({_id:user.id});
                 return response.status(200).json({ user, message: 'User is logged in' });
             }
         });
@@ -90,7 +94,8 @@ const authController = {
                 email: username,
                 password: encryptedPassword,
                 name: name,
-                role :data.role? data.role:'admin',// This ensure backward compatibility why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
+                role :data.role ? data.role :'admin',// This ensure backward compatibility why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
+                credits:data.credits
             });
 
             await user.save();
@@ -99,7 +104,8 @@ const authController = {
             const userDetails = {
                 id: user._id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                role:user.role
             };
 
             // ✅ New: generate token
@@ -157,6 +163,7 @@ const authController = {
                 username: email,
                 name: name,
                 role :data.role? data.role:'admin',   // why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
+                credits:data.credits
             };
 
             // ✅ Reuse token logic

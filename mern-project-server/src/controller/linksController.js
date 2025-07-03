@@ -6,6 +6,22 @@ const linksController = {
         const { campaign_title, original_url, category } = request.body;
 
         try {
+            // We're fetching user details from DB even though we have
+            // it available in request object. The reason is critical operation.
+            // We're dealing with money and we want to pull latest information
+            // whenever we're transacting.
+
+
+            const user = await Users.findById({
+                _id:request.user.id
+            });
+            if (user.credits < 1) {
+                return response.status(400).json({
+                    message: 'Insufficient credit balance'
+
+                });
+            }
+
             const link = new Links({
                 campaignTitle: campaign_title,
                 originalUrl: original_url,
@@ -15,6 +31,8 @@ const linksController = {
                     request.user.id : request.user.adminId // 🔄 CHANGED
             });
             await link.save();
+            user.credits -=1;   // we are decrementing the value of credit because they making of url code is above only
+            await user.save();
             response.json({
                 data: { linkId: link._id }
             });

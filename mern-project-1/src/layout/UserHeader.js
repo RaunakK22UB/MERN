@@ -1,6 +1,8 @@
 // src/layout/UserHeader.js
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import Can from "../rbac/Can";
+
 
 function UserHeader() {
   // ✅ Access user details from Redux store
@@ -51,10 +53,19 @@ function UserHeader() {
               </Link>
               <ul className="dropdown-menu dropdown-menu-end">
                 <li>
-                  <Link className="dropdown-item" to="/logout">
-                    Logout
+                   <Link className="dropdown-item" to="/logout">
+                    LogOut
                   </Link>
+                 </li>
+                 <Can permission="canViewUser">
+                 <li>
+                  
+                  <Link className="dropdown-item" to="/manageUsers">
+                    manage Users
+                  </Link>
+                
                 </li>
+                  </Can>
               </ul>
             </li>
           </ul>

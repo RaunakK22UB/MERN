@@ -33,6 +33,10 @@ const UsersSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       index: true
+   },
+   credits:{                      // this are the creditud users are going to buy from out website
+      type:Number,
+      default:0
    }
 });
 
