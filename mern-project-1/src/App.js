@@ -28,6 +28,8 @@ import { SET_USER } from "./redux/user/actions";
 import ManageUser from './pages/manageUsers/manageUsers';
 import UnauthorizedAccess from "./components/UnauthorizeAccess";
 import ProtectedRoute from "./rbac/ProtectedRoute";
+import ManagePayment from "./pages/payments/ManagePayment";
+
 
 function App() {
   const dispatch = useDispatch();
@@ -172,6 +174,22 @@ function App() {
     )
   }
   />
+
+    <Route
+       path="/manage-payments"
+  element={
+    userDetails ? (
+       <UserLayout>
+         <ManagePayment />
+       </UserLayout>
+       
+    ) : (
+      <Navigate to="/login" />
+    )
+  }
+  />
+ 
+ 
 
  
     </Routes>

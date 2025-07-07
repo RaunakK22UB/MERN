@@ -1,5 +1,6 @@
 const { request } = require("express");
 const Links = require("../model/Links");
+const Users=require("../model/Users");
 
 const linksController = {
     create: async (request, response) => {
@@ -12,15 +13,16 @@ const linksController = {
             // whenever we're transacting.
 
 
-            const user = await Users.findById({
-                _id:request.user.id
-            });
-            if (user.credits < 1) {
-                return response.status(400).json({
-                    message: 'Insufficient credit balance'
+            const user = await Users.findById({ _id:request.user.id });
 
+            // we 1st found the user by id then we are seeing if they have active subscription and credit should be also so there so can create link
+            const hasActiveSubscription = user.subscription &&  user.subscription.status === 'active';
+            if(!hasActiveSubscription && user.credits<1){
+                return response.status(400).json({
+                    messsage:'Insufficient credit balance or no active subscription'
                 });
-            }
+            }            
+            
 
             const link = new Links({
                 campaignTitle: campaign_title,

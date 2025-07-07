@@ -3,6 +3,7 @@ const Users = require('../model/Users');
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const { validationResult } = require('express-validator');
+const { default: subscriptions } = require('razorpay/dist/types/subscriptions');
 
 const secret = process.env.JWT_SECRET;
 
@@ -34,7 +35,8 @@ const authController = {
                 email: data.email,
                 role :data.role? data.role:'admin', // why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
                 adminId:data.adminId,
-                credits:data.credits
+                credits:data.credits,
+                subscription:data.subscription
                
             };
 
@@ -57,8 +59,15 @@ const authController = {
 
     // ------------------ LOGOUT ------------------
     logout: (request, response) => {
-        response.clearCookie('jwtToken');
+        try{
+             response.clearCookie('jwtToken');
         response.status(200).json({ message: 'User is logged out' });
+
+        }catch(error){
+                 console.log(error);
+                 response.status(500).json({message:"Somthing went wrong please try again!!"})
+        }
+       
     },
 
     // ------------------ IS USER LOGGED IN ------------------
@@ -73,6 +82,9 @@ const authController = {
                 return response.status(401).json({ message: 'Invalid token' });
             } else {
                 const latestUserDeatils = await Users.findById({_id:user.id});
+                console.log(user.role)
+                console.log(user.id)
+                console.log(user.credits)
                 return response.status(200).json({ user, message: 'User is logged in' });
             }
         });

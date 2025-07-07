@@ -186,12 +186,12 @@ function LinksDashboard() {
     ];
 
     return (
-        <div className="container py-4">
+      <div className="container py-4">
             <div className="d-flex justify-content-between mb-3">
                 <h2>Manage Affiliate Links</h2>
-                {permission.canAddLink && (
+                {permission.canCreateLink && (
                     <button className="btn btn-primary btn-sm" onClick={() => handleOpenModal(false)}>
-                        Add
+                        + Add
                     </button>
                 )}
             </div>

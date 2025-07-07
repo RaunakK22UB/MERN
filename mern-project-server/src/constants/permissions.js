@@ -15,6 +15,7 @@ const permissions ={
     ],
     developers:[
         'link:read',
+        'payment:create'  
     ],
     viewer:[
         'link:read',

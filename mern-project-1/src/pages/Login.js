@@ -151,7 +151,7 @@ function Login() {
     <div className="container py-5">
       <div className="row justify-content-center">
         <div className="col-md-4">
-          <h2 className="text-center mb-4">Sign in to Continue</h2>
+          <h2 className="text-center mb-4">Login in to Continue</h2>
 
           {/* Error Alert */}
           {errors.message && (

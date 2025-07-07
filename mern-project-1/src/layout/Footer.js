@@ -1,9 +1,10 @@
 function Footer() {
     return (
-        <>
-            <div className="container-fluid text-center">
+        <>  
+             <div className="bg-dark text-white text-center py-3 mt-auto">
                 <p>I am Footer!</p>
             </div>
+     
         </>
     );
 }

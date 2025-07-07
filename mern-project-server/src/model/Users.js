@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+//-------------------------------------------------------For asyncronous payment method
+const SubscriptionSchema = new mongoose.Schema({
+   id: {type:String}, /// Razorpay subscription ID
+   planId:{type:String},
+   status:{type:String,default:'pending'},
+   start:{type:Date},
+   end:{type:Date},
+   lastBillDate:{type:Date},
+   nextBillDate:{type:Date},
+   paymentsMade:{type:Number},
+   paymentsRemaining:{type:Number},
+
+});
+
 const UsersSchema = new mongoose.Schema({
    email: {
       type: String,
@@ -37,6 +51,10 @@ const UsersSchema = new mongoose.Schema({
    credits:{                      // this are the creditud users are going to buy from out website
       type:Number,
       default:0
+   }, 
+   Subscription:{                   // we are not creating separate table for this subscription we are adding the whole schema here only and default we are taking empty object 
+      type:SubscriptionSchema,
+      default:()=>({})
    }
 });
 

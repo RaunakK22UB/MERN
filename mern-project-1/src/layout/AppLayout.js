@@ -5,22 +5,13 @@ import Header from "./Header";
 function AppLayout({ children }) {
     return (
         <>
+        <div className="d-flex flex-column min-vh-100">
             <Header />
+
             { children }
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            <br></br>
-            
-            <Footer />
+
+            <Footer/>
+        </div>
         </>
     );
 }
