@@ -1,6 +1,6 @@
 const { request } = require("express");
 const Links = require("../model/Links");
-const Users=require("../model/Users");
+const Users = require("../model/Users");
 
 const linksController = {
     create: async (request, response) => {
@@ -13,16 +13,16 @@ const linksController = {
             // whenever we're transacting.
 
 
-            const user = await Users.findById({ _id:request.user.id });
+            const user = await Users.findById({ _id: request.user.id });
 
             // we 1st found the user by id then we are seeing if they have active subscription and credit should be also so there so can create link
-            const hasActiveSubscription = user.subscription &&  user.subscription.status === 'active';
-            if(!hasActiveSubscription && user.credits<1){
+            const hasActiveSubscription = user.subscription && user.subscription.status === 'active';
+            if (!hasActiveSubscription && user.credits < 1) {
                 return response.status(400).json({
-                    messsage:'Insufficient credit balance or no active subscription'
+                    messsage: 'Insufficient credit balance or no active subscription'
                 });
-            }            
-            
+            }
+
 
             const link = new Links({
                 campaignTitle: campaign_title,
@@ -30,11 +30,17 @@ const linksController = {
                 category: category,
                 // users: request.user.id // Coming from middleware; AuthMiddleware
                 users: request.user.role === 'admin' ?
-                    request.user.id : request.user.adminId // 🔄 CHANGED
+                    request.user.id : request.user.adminId 
             });
             await link.save();
-            user.credits -=1;   // we are decrementing the value of credit because they making of url code is above only
-            await user.save();
+
+            // if the user dont have the subscription then we will just decrease the credits because in yearly and monthaly credits are unlimited
+            if (!hasActiveSubscription) {
+                user.credits -= 1;   // we are decrementing the value of credit because they making of url code is above only
+                await user.save();
+            }
+
+
             response.json({
                 data: { linkId: link._id }
             });
@@ -49,10 +55,10 @@ const linksController = {
     getAll: async (request, response) => {
         try {
             const userId = request.user.role === 'admin' ?
-                request.user.id : request.user.adminId; // ✅ ADDED
+                request.user.id : request.user.adminId; 
 
             const links = await Links
-                .find({ users: userId }) // 🔄 CHANGED
+                .find({ users: userId }) 
                 .sort({ createdAt: -1 });
             response.json({ data: links });
         } catch (error) {
@@ -79,9 +85,9 @@ const linksController = {
 
             // Make sure the link indeed belong to the logged in user.
             const userId = request.user.role === 'admin' ?
-                request.user.id : request.user.adminId; // ✅ ADDED
+                request.user.id : request.user.adminId; 
 
-            if (link.users.toString() !== userId) { // 🔄 CHANGED
+            if (link.users.toString() !== userId) {
                 return response.status(403).json({
                     error: 'Unauthorized access'
                 });
@@ -112,9 +118,9 @@ const linksController = {
 
             // Make sure the link indeed belong to the logged in user.
             const userId = request.user.role === 'admin' ?
-                request.user.id : request.user.adminId; // ✅ ADDED
+                request.user.id : request.user.adminId; 
 
-            if (link.users.toString() !== userId) { // 🔄 CHANGED
+            if (link.users.toString() !== userId) { 
                 return response.status(403).json({
                     error: 'Unauthorized access'
                 });
@@ -153,9 +159,9 @@ const linksController = {
 
             // Make sure the link indeed belong to the logged in user.
             const userId = request.user.role === 'admin' ?
-                request.user.id : request.user.adminId; // ✅ ADDED
+                request.user.id : request.user.adminId;
 
-            if (link.users.toString() !== userId) { // 🔄 CHANGED
+            if (link.users.toString() !== userId) { 
                 return response.status(403).json({
                     error: 'Unauthorized access'
                 });

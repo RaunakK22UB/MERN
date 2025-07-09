@@ -3,7 +3,7 @@ const Users = require('../model/Users');
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const { validationResult } = require('express-validator');
-const { default: subscriptions } = require('razorpay/dist/types/subscriptions');
+
 
 const secret = process.env.JWT_SECRET;
 
@@ -106,8 +106,8 @@ const authController = {
                 email: username,
                 password: encryptedPassword,
                 name: name,
-                role :data.role ? data.role :'admin',// This ensure backward compatibility why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
-                credits:data.credits
+                role :'admin',// This ensure backward compatibility why we doing this in role only because erlier also users registered so they use registered page to login so they will be default admin only
+                credits:0
             });
 
             await user.save();
@@ -198,6 +198,10 @@ const authController = {
 };
 
 module.exports = authController;
+
+
+
+
 
 
 //-----------------------------------last changes 27-06-25

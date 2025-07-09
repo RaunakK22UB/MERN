@@ -28,7 +28,7 @@ import { SET_USER } from "./redux/user/actions";
 import ManageUser from './pages/manageUsers/manageUsers';
 import UnauthorizedAccess from "./components/UnauthorizeAccess";
 import ProtectedRoute from "./rbac/ProtectedRoute";
-import ManagePayment from "./pages/payments/ManagePayment";
+import ManagePayments from "./pages/payments/ManagePayments";
 
 
 function App() {
@@ -180,7 +180,7 @@ function App() {
   element={
     userDetails ? (
        <UserLayout>
-         <ManagePayment />
+         <ManagePayments />
        </UserLayout>
        
     ) : (

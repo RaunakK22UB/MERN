@@ -3,27 +3,27 @@ const Razorpay = require('razorpay');
 const { CREDIT_PACKS, PLAN_IDS } = require("../constants/paymentConstant");
 const crypto = require('crypto');
 const Users = require('../model/Users');
-const { default: subscriptions } = require('razorpay/dist/types/subscriptions');
+
 const { request } = require('http');
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET // ✅ fixed: it was incorrectly written as KEY_SECRET
+    key_secret: process.env.RAZORPAY_KEY_SECRET 
 });
 
 const paymentController = {
     // Step #1 from the sequence diagram of one-time payment workflow
-    // ✅ We are here creating the first step when the user initiates the payment
+    //  We are here creating the first step when the user initiates the payment
     createOrder: async (request, response) => {
         try {
             const { credits } = request.body;
 
-            if (!CREDIT_PACKS[credits]) { // ✅ check if credits pack is valid
+            if (!CREDIT_PACKS[credits]) { //  check if credits pack is valid
                 return response.status(400).json({
                     message: 'Invalid credit value'
                 });
             }
 
-            const amount = CREDIT_PACKS[credits] * 100; // ✅ convert to paisa (Razorpay needs amount in paise)
+            const amount = CREDIT_PACKS[credits] * 100; //  convert to paisa (Razorpay needs amount in paise)
 
             const order = await razorpay.orders.create({
                 amount: amount,
@@ -37,14 +37,14 @@ const paymentController = {
 
         } catch (error) {
             console.log(error);
-            response.status(500).json({ // ✅ fixed typo: staus → status
+            response.status(500).json({ 
                 message: 'Internal server error'
             });
         }
     },
 
     // Step #8 from the sequence diagram of one-time payment workflow
-    // ✅ Verify payment and update user credits
+    // Verify payment and update user credits
     verifyOrder: async (request, response) => {
         try {
             const {
@@ -56,7 +56,6 @@ const paymentController = {
 
             const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-            // ✅ generate expected signature
             const expectedSignature = crypto
                 .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
                 .update(body.toString())
@@ -68,7 +67,7 @@ const paymentController = {
                 });
             }
 
-            // ✅ add credits to user
+        
             const user = await Users.findById(request.user.id);
             if (!user) {
                 return response.status(404).json({
@@ -76,7 +75,7 @@ const paymentController = {
                 });
             }
 
-            user.credits += Number(credits); // ✅ safely increment credits
+            user.credits += Number(credits); 
             await user.save();
 
             response.json({
@@ -97,7 +96,7 @@ const paymentController = {
             const { plan_name } = request.body;
             if (!PLAN_IDS[plan_name]) {
                 return response.status(400).json({
-                    message: 'Invalid plan name' // ✅ fixed typo: Inavlid → Invalid
+                    message: 'Invalid plan name' 
                 });
             }
 
@@ -107,7 +106,7 @@ const paymentController = {
                 customer_notify: 1,
                 total_count: plan.totalBillingCycleCount,
                 notes: {
-                    userID: request.user.id
+                    userId: request.user.id
                 }
             });
             response.json({ subscription: subscription });
@@ -138,13 +137,13 @@ const paymentController = {
 
         } catch (error) {
             console.log(error);
-            response.status(500).json({ // ✅ fixed typo: staus → status
+            response.status(500).json({ 
                 message: 'Internal server error'
             });
         }
     },
 
-    canclesubscriptionn: async (request, response) => { // ✅ left function name unchanged as you requested
+    canclesubscriptionn: async (request, response) => { 
         try {
             const { subscription_id } = request.body;
             if (!subscription_id) {
@@ -164,13 +163,13 @@ const paymentController = {
         }
     }, 
 
-    handleWebhookEvent: async (request, response) => { // ✅ fixed requesty → request
+    handleWebhookEvent: async (request, response) => { 
         try {
             console.log('Received event');
-            const signature = request.headers['x-razorpay-signature']; // ✅ fixed missing "=" and header accessor
+            const signature = request.headers['x-razorpay-signature']; 
             const body = JSON.stringify(request.body);
             const expectedSignature = crypto
-                .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET) // ✅ fixed process.nextTick → process.env
+                .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET) 
                 .update(body)
                 .digest('hex');
 
@@ -179,11 +178,11 @@ const paymentController = {
             }
 
             const payload = JSON.parse(body);
-            console.log(JSON.stringify(payload, null, 2)); // ✅ fixed 0 → null for pretty print
+            console.log(JSON.stringify(payload, null, 2)); 
             const event = payload.event;
             const subscriptionData = payload.payload.subscription.entity;
             const razorpaySubscriptionId = subscriptionData.id;
-            const userId = subscriptionData.notes ? subscriptionData.notes.userId : null; // ✅ fixed logic for userId
+            const userId = subscriptionData.notes ? subscriptionData.notes.userId : null; 
 
             if (!userId) {
                 console.log('UserId not found in notes');
@@ -240,7 +239,7 @@ const paymentController = {
                 console.log('USer is not valid');
                 return response.status(400).send('UserId is not valid');
             }
-            console.log(`Updated subscription status for user ${user.username} to ${newStatus}`);
+            console.log(`Updated subscription status for user ${userId} to ${newStatus}`);
             return response.status(200).send(`Event processed for user:${userId}`);
              
 
@@ -253,4 +252,4 @@ const paymentController = {
     }
 };
 
-module.exports = paymentController; // ✅ fixed typo: modulr → module
+module.exports = paymentController; 
