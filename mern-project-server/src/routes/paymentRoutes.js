@@ -4,6 +4,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const authorize = require('../middleware/authorizeMiddleware');
 const paymentController = require('../controller/paymentController');
+const linksController = require('../controller/linksController');
 
 
 router.post('/webhook', express.raw({ type: 'application/json' }),
@@ -12,6 +13,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }),
 
 
 router.use(authMiddleware.protect);
+
 
 router.post('/create-order', authorize('payment:create'), paymentController.createOrder);
 router.post('/verify-order', authorize('payment:create'), paymentController.verifyOrder);

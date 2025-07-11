@@ -29,6 +29,7 @@ import ManageUser from './pages/manageUsers/manageUsers';
 import UnauthorizedAccess from "./components/UnauthorizeAccess";
 import ProtectedRoute from "./rbac/ProtectedRoute";
 import ManagePayments from "./pages/payments/ManagePayments";
+import AnalyticsDashboard from "./pages/links/AnalyticsDashboard";
 
 
 function App() {
@@ -188,6 +189,14 @@ function App() {
     )
   }
   />
+
+  <Route path="/analytics/:id" element={
+    userDetails?
+    <UserLayout>
+      <AnalyticsDashboard/>
+    </UserLayout> :
+    <Navigate to ="/login"/>
+  }/>
  
  
 

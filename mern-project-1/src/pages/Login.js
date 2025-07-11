@@ -117,7 +117,7 @@ function Login() {
 
   const handleGoogleError = async (error) => {
     console.log(error);
-    setErrors({ message: "Error in googl authorization flow, try again" })
+    setErrors({ message: "Error in google authorization flow, try again" })
   }
 
   // return (

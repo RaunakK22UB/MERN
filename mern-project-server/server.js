@@ -17,7 +17,7 @@ const app = express();
 
 app.use((request,response,next)=>{
     if(request.originalUrl.startsWith('payments/webhook')){
-        next();
+        return next();
     }
     express.json()(request,response,next);
 })

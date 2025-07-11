@@ -127,7 +127,7 @@ const paymentController = {
 
             // we will use this entry to prevent user from subscribing again
             // from the UI, while we wait for activated event from razorpay
-            user.subscription = {
+            user.Subscription = {
                 id: subscription_id,
                 planId: subscription.plan_id,
                 status: subscription.status
@@ -174,6 +174,7 @@ const paymentController = {
                 .digest('hex');
 
             if (expectedSignature !== signature) {
+                console.log('Invalid signature')
                 return response.status(400).send('Invalid Signature');
             }
 
@@ -215,20 +216,20 @@ const paymentController = {
                            'Subscription.id':razorpaySubscriptionId,
                            'Subscription.planId':subscriptionData.plan_id,
                            'Subscription.status':newStatus,
-                           'Subscription:start':subscriptionData.start_at
+                           'Subscription.start':subscriptionData.start_at
                            ? new Date(subscriptionData.start_at*1000)
                            :null,
-                           'Subscription:end':subscriptionData.end_at
+                           'Subscription.end':subscriptionData.end_at
                            ? new Date(subscriptionData.end_at*1000)
                            :null,
-                           'Subscription:lastBillDate':subscriptionData.current_start
+                           'Subscription.lastBillDate':subscriptionData.current_start
                            ? new Date(subscriptionData.current_start*1000)
                            :null,
-                           'Subscription:BillnextDate':subscriptionData.current_end
+                           'Subscription.BillnextDate':subscriptionData.current_end
                            ? new Date(subscriptionData.current_end*1000)
                            :null,
-                           'subscription:paymentsMade':subscriptionData.paid_count,
-                           'subscription:paymentsRemaining':subscriptionData.remaining_count,
+                           'subscription.paymentsMade':subscriptionData.paid_count,
+                           'subscription.paymentsRemaining':subscriptionData.remaining_count,
 
                     }
                 },
@@ -240,7 +241,7 @@ const paymentController = {
                 return response.status(400).send('UserId is not valid');
             }
             console.log(`Updated subscription status for user ${userId} to ${newStatus}`);
-            return response.status(200).send(`Event processed for user:${userId}`);
+            return response.status(200).send('Event processed successfully');
              
 
         } catch (error) {

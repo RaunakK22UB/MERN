@@ -3,9 +3,10 @@ const Users = require('../model/Users');
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const { validationResult } = require('express-validator');
-
+const { attemptToRefreshToken } = require('../util/authUtil');
 
 const secret = process.env.JWT_SECRET;
+const refreshSecret=process.env.JWT_REFRESH_TOKEN_SECRET
 
 const authController = {
 
@@ -39,10 +40,19 @@ const authController = {
                 subscription:data.subscription
                
             };
-
-            const token = jwt.sign(user, secret, { expiresIn: '1h' });
-
+//----------------------------------------------------------------------------------
+            const token = jwt.sign(user, secret, { expiresIn: '1m' });
             response.cookie('jwtToken', token, {
+                httpOnly: true,
+                secure: true,
+                domain: 'localhost',
+                path: '/'
+            });
+//---------------------------------------------------------------------------RefreshToken
+            const refreshToken= jwt.sign(user, refreshSecret, { expiresIn: '7d' });
+            //store it in the datbase if you want! storing in db will make refresh token secure  
+            // exmaple of refreshtoken , some website gives us one tick box that tick to be logged in
+            response.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
                 secure: true,
                 domain: 'localhost',
@@ -76,15 +86,25 @@ const authController = {
         if (!token) {
             return response.status(401).json({ message: 'User is not logged in' });
         }
-
         jwt.verify(token, secret, async(err, user) => {
             if (err) {
+                // if somthing went wrong means jwt token is expired , so we will check in error that 
+               // reffreshtoken is present then we will make use of that other wise it will be error only bottm on
+                const refreshToken =request.cookies?.refreshToken;
+                    if(refreshToken){;
+                        const {newAccessToken,user}=await attemptToRefreshToken(refreshToken);
+                        response.cookie('jwtToken',newAccessToken,{
+                            httpOnly:true,
+                            secure:true,
+                            domain:'localhost',
+                            path:'/'
+                        });
+                        console.log("refresh token  did it's job")
+                        return response.json({message:'User is logged in',user:user})
+                    }
                 return response.status(401).json({ message: 'Invalid token' });
             } else {
                 const latestUserDeatils = await Users.findById({_id:user.id});
-                console.log(user.role)
-                console.log(user.id)
-                console.log(user.credits)
                 return response.status(200).json({ user, message: 'User is logged in' });
             }
         });
@@ -179,7 +199,7 @@ const authController = {
             };
 
             // ✅ Reuse token logic
-            const token = jwt.sign(user, secret, { expiresIn: '1h' });
+            const token = jwt.sign(user, secret, { expiresIn: '1m' });
 
             response.cookie('jwtToken', token, {
                 httpOnly: true,
@@ -187,7 +207,16 @@ const authController = {
                 domain: 'localhost',
                 path: '/'
             });
-
+//------------------------------------------------------------------RefreshToken
+           const refreshToken= jwt.sign(user, refreshSecret, { expiresIn: '7d' });
+            //store it in the datbase if you want! storing in db will make refresh token secure  
+            // exmaple of refreshtoken , some website gives us one tick box that tick to be logged in
+            response.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: true,
+                domain: 'localhost',
+                path: '/'
+            });
             response.json({ user, message: 'User authenticated' });
 
         } catch (e) {
