@@ -196,7 +196,7 @@ const linksController = {
             }
 //---------------------------------------------------------------scraping the data ip,city,country,region,lat,lon,isp
             const isDevelopment=process.env.NODE_ENV === "development";
-            const ipAddress=isDevelopment ? '8.8.8.8' : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
+            const ipAddress=isDevelopment ? '8.8.8.8' : request.headers['x-forwarded-for']?.split(',')[0] || request.socket.remoteAddress;
 
             const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
             const {city,country,region,lat,lon,isp}=geoResponse.data;
@@ -218,7 +218,7 @@ const linksController = {
                 referrer:referrer,
                 userAgent:userAgent,
                 deviceType:deviceType,
-                browser,browser,
+                browser:browser,
                 clickedAt:new Date()
             });
 //-------------------------------------------------------------------------------------------------------------------
