@@ -21,10 +21,10 @@ const authMiddleware = {
                     if(refreshToken){;
                         const {user,newAccessToken}=await attemptToRefreshToken(refreshToken);
                         response.cookie('refreshToken',newAccessToken,{
-                            httpOnly:true,
-                            secure:true,
-                            domain:'localhost',
-                            path:'/'
+                            httpOnly: true,
+                            secure: process.env.NODE_ENV === 'production',
+                            path: '/',
+                            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
                         });
 
                         request.user=user;

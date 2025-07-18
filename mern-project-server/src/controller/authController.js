@@ -45,19 +45,20 @@ const authController = {
             const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
-                secure: true,
-                domain: 'localhost',
-                path: '/'
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+
             });
 //---------------------------------------------------------------------------RefreshToken
             const refreshToken= jwt.sign(user, refreshSecret, { expiresIn: '7d' });
             //store it in the datbase if you want! storing in db will make refresh token secure  
             // exmaple of refreshtoken , some website gives us one tick box that tick to be logged in
             response.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: true,
-                domain: 'localhost',
-                path: '/'
+               httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
 
             response.json({ user, message: 'User authenticated' });
@@ -95,10 +96,10 @@ const authController = {
                     if(refreshToken){;
                         const {newAccessToken,user}=await attemptToRefreshToken(refreshToken);
                         response.cookie('jwtToken',newAccessToken,{
-                            httpOnly:true,
-                            secure:true,
-                            domain:'localhost',
-                            path:'/'
+                            httpOnly: true,
+                            secure: process.env.NODE_ENV === 'production',
+                            path: '/',
+                            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
                         });
                         console.log("refresh token  did it's job")
                         return response.json({message:'User is logged in',user:user})
@@ -146,10 +147,10 @@ const authController = {
 
             // New: send token in cookie
             response.cookie('jwtToken', token, {
-                httpOnly: true,
-                secure: true,
-                domain: 'localhost',
-                path: '/'
+                 httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
 
             // ✅ New: send user object as part of response
@@ -200,13 +201,13 @@ const authController = {
             };
 
             // ✅ Reuse token logic
-            const token = jwt.sign(user, secret, { expiresIn: '1m' });
+            const token = jwt.sign(user, secret, { expiresIn: '1h' });
 
             response.cookie('jwtToken', token, {
-                httpOnly: true,
-                secure: true,
-                domain: 'localhost',
-                path: '/'
+                 httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                path: '/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
             });
 //------------------------------------------------------------------RefreshToken
            const refreshToken= jwt.sign(user, refreshSecret, { expiresIn: '7d' });
