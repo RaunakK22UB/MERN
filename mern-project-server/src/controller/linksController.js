@@ -179,6 +179,8 @@ const linksController = {
             });
         }
     },
+    
+
     redirect: async (request, response) => {
         try {
             const linkId = request.params.id;
@@ -192,40 +194,34 @@ const linksController = {
                 return response.status(404)
                     .json({ error: 'LinkID does not exist' });
             }
-            //---------------------------------------------------------------scraping the data ip,city,country,region,lat,lon,isp
+//---------------------------------------------------------------scraping the data ip,city,country,region,lat,lon,isp
+            const isDevelopment=process.env.NODE_ENV === "development";
+            const ipAddress=isDevelopment ? '8.8.8.8' : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
 
-            const isDevelopment = process.env.NODE_ENV === 'development';
-            const ipAddress = isDevelopment
-                ? '8.8.8.8'
-                : request.headers['x-forwarded-for']?.split(',')[0]
-                || request.socket.remoteAddress;
+            const geoResponse = await axios.get(`http://ip-api.com/json${ipAddress}`);
+            const {city,country,region,lat,lon,isp}=geoResponse.data;
 
-            const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
-            const { city, country, region, lat, lon, isp  } = geoResponse.data;
-
-            const userAgent = request.headers['user-agent'] || 'unknown';
-            const { isMobile, browser } = getDeviceInfo(userAgent);
-            const deviceType = isMobile ? 'Mobile' : 'Desktop';
-
-            const referrer = request.get('Referrer') || null;
+            const userAgent=request.headers['user-agent']||'unknown';
+            const {isMobile,browser} = getDeviceInfo(userAgent);
+            const deviceType = isMobile?'Mobile':'Desktop';
+            const referrer = request.get('Referrer')||null;
 
             await Clicks.create({
-                linkId: link._id,
-                ip: ipAddress,
-                city: city,
-                country: country,
-                region: region,
-                latitude: lat,
-                longitude: lon,
-                isp: isp,
-                referrer: referrer,
-                userAgent: userAgent,
-                deviceType: deviceType,
-                browser: browser,
-                clickedAt: new Date()
+                linkID:link._id,
+                ip:ipAddress,
+                city:city,
+                country:country,
+                region:region,
+                lattitude:lat,
+                longitude:lon,
+                isp:isp,
+                referrer:referrer,
+                userAgent:userAgent,
+                deviceType:deviceType,
+                browser,browser,
+                clickedAt:new Date()
             });
-//------------------------------------------------------------------------------------------------
-
+//-------------------------------------------------------------------------------------------------------------------
             link.clickCount += 1;
             await link.save();
 
@@ -237,137 +233,44 @@ const linksController = {
             });
         }
     },
-     // this analytics function to take all the data from redirect function related to clicks
 
-    analytics: async (request, response) => {
-        try {
-            const { linkId, from, to } = request.query;
 
-            const link = await Links.findById({ _id: linkId });
-            if (!link) {
+    // this analytics function to take all the data from redirect function related to clicks
+
+    analytics:async(request,response)=>{
+        try{
+            const {linkId,from,to}=request.query;
+            const link = await Links.findById({_id:linkId});
+            if(!link){
                 return response.status(404).json({
-                    error: 'Link not found'
+                    error:'Link not found'
                 });
             }
-
-            const userId = request.user.role === 'admin'
-                ? request.user.id
-                : request.user.adminId
-            if (link.user.toString() !== userId) {
+ 
+            const userId=request.user.role === 'admin'?request.user.id:request.user.adminId
+            if(link.users.toString()!==userId){
                 return response.status(403).json({
-                    error: 'Unauthorized'
+                    error:"Unauthorised"
                 });
             }
 
-            const query = {
-                linkId: linkId
+            const query ={
+                linkID:linkId
             };
 
-            if (from && to) {
-                query.clickedAt = { $gte: new Date(from), $lte: new Date(to) };
+            if(from && to ){
+                query.clickedAt = {$gte : new Date(from), $lte: new Date(to)};
             }
-
-            const data = await Clicks.find(query).sort({ clickedAt: -1 });
+            const data = await Clicks.find(query).sort({clickedAt:-1});
             response.json(data);
-        } catch (error) {
+
+        }catch(error){
             console.log(error);
-            return response.status(500).json({
-                message: 'Internal server error'
+            response.status(400).json({
+                message:"Internal server error"
             });
         }
-    },
-
-
-//     redirect: async (request, response) => {
-//         try {
-//             const linkId = request.params.id;
-//             if (!linkId) {
-//                 return response.status(401)
-//                     .json({ error: 'Link ID is required' });
-//             }
-
-//             let link = await Links.findById(linkId);
-//             if (!link) {
-//                 return response.status(404)
-//                     .json({ error: 'LinkID does not exist' });
-//             }
-
-//             const isDevelopment=process.env.NODE_ENV === "development";
-//             const ipAddress=isDevelopment ? '8.8.8.8' : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
-
-//             const geoResponse = await axios.get(`http://ip-api.com/json${ipAddress}`);
-//             const {city,country,region,lat,lon,isp}=geoResponse.data;
-
-//             const userAgent=request.headers['user-agent']||'unknown';
-//             const {isMobile,browser} = getDeviceInfo(userAgent);
-//             const deviceType = isMobile?'Mobile':'Desktop';
-//             const referrer = request.get('Referrer')||null;
-
-//             await Clicks.create({
-//                 linkID:link._id,
-//                 ip:ipAddress,
-//                 city:city,
-//                 country:country,
-//                 region:region,
-//                 lattitude:lat,
-//                 longitude:lon,
-//                 isp:isp,
-//                 referrer:referrer,
-//                 userAgent:userAgent,
-//                 deviceType:deviceType,
-//                 browser,browser,
-//                 clickedAt:new Date()
-//             });
-// //-------------------------------------------------------------------------------------------------------------------
-//             link.clickCount += 1;
-//             await link.save();
-
-//             response.redirect(link.originalUrl);
-//         } catch (error) {
-//             console.log(error);
-//             response.status(500).json({
-//                 error: 'Internal server error'
-//             });
-//         }
-//     },
-
-
-   
-
-//     analytics:async(request,response)=>{
-//         try{
-//             const {linkId,from,to}=request.query;
-//             const link = await Links.findById({_id:linkId});
-//             if(!link){
-//                 return response.status(404).json({
-//                     error:'Link not found'
-//                 });
-//             }
- 
-//             const userId=request.user.role === 'admin'?request.user.id:request.user.adminId
-//             if(link.users.toString()!==userId){
-//                 return response.status(403).json({
-//                     error:"Unauthorised"
-//                 });
-//             }
-
-//             const query ={
-//                 linkID:linkId
-//             };
-
-//             if(from && to ){
-//                 query.clickedAt = {gte : new Date(from), lte: new Date(to)};
-//             }
-//             const data = await Clicks.find(query).sort({clickedAt:-1});
-//             response.json(data);
-
-//         }catch(error){
-//             console.log(error);
-//             response.status(400).json({
-//                 message:"Internal server error"
-//             });
-//         }
-//     }
+    }
 };
 
 module.exports = linksController;
