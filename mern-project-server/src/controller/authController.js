@@ -4,7 +4,8 @@ const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const { validationResult } = require('express-validator');
 const { attemptToRefreshToken } = require('../util/authUtil');
-
+const send = require("../service/emailService");
+const { request } = require('express');
 const secret = process.env.JWT_SECRET;
 const refreshSecret=process.env.JWT_REFRESH_TOKEN_SECRET
 
@@ -41,7 +42,7 @@ const authController = {
                
             };
 //----------------------------------------------------------------------------------
-            const token = jwt.sign(user, secret, { expiresIn: '1m' });
+            const token = jwt.sign(user, secret, { expiresIn: '1h' });
             response.cookie('jwtToken', token, {
                 httpOnly: true,
                 secure: true,
@@ -132,7 +133,7 @@ const authController = {
 
             await user.save();
 
-            // ✅ New: create userDetails object
+            //New: create userDetails object
             const userDetails = {
                 id: user._id,
                 name: user.name,
@@ -140,10 +141,10 @@ const authController = {
                 role:user.role
             };
 
-            // ✅ New: generate token
+            //New: generate token
             const token = jwt.sign(userDetails, secret, { expiresIn: '1h' });
 
-            // ✅ New: send token in cookie
+            // New: send token in cookie
             response.cookie('jwtToken', token, {
                 httpOnly: true,
                 secure: true,
@@ -223,7 +224,72 @@ const authController = {
             console.log(e);
             return response.status(500).json({ message: 'Internal server error' });
         }
+    },
+
+
+    //------------------------------function for sending the token via mail
+    sendResetPassowrdToken:async(request , response)=>{
+        try{
+              const {email} = request.body;
+              const user = await Users.findOne({email});
+              if(!user){
+                return response.status(400).json({message:"User dose not exists!!"})
+              };
+
+              const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+              let result='';
+              for(let i=0;i<6;i++){
+                   result +=chars.charAt(Math.floor(Math.random()*chars.length))
+              }
+
+              const ExpiryTime = Date.now()+10*60*1000;
+
+            
+            user.PasswordToken = result;
+            user.PasswordTokenExpiry =ExpiryTime;
+
+            await user.save();
+            try{
+            await send(email,"One Time Password",`Hi ${user.name} this is one time password from the affilate++ please dont share this to any one!! PASSWORD: ${result}`);
+              response.status(200).json({ message: "OTP sent to your email!" });
+            }catch(error){
+                console.log(error);
+                response.status(500).json({message:"Internal server error"})
+            }
+            
+
+
+        }catch(error){
+            console.log(error);
+            response.status(500).json({message:"Internal server error"})
+        }
+    },
+// ----------------this is the function for reseting the passowrd
+resetPassowrd: async(request,response)=>{
+    try{
+        const {email , code , newPassword}= request.body;
+ const user = await Users.findOne({email,PasswordToken:code,PasswordTokenExpiry :{$gt : Date.now()}});
+              if(!user){
+                return response.status(400).json({message:"User dose not exists!!"})
+              };
+
+     const hashedPassword = await bcrypt.hash(newPassword,10);
+     user.password=hashedPassword;
+    user.PasswordToken = null;
+user.PasswordTokenExpiry = null;
+
+
+     await user.save();
+     response.json({message:`${user.name},Hey Password is successfully Changed!!`})
+
+
+         
+    }catch(error){
+        console.log(error);
+            response.status(500).json({message:"Internal server error"})
     }
+}
+    
 };
 
 module.exports = authController;

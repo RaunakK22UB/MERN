@@ -12,7 +12,7 @@ const clickSchema = new mongoose.Schema({
     userAgent:String,
     deviceType:String,
     browser:String,
-    clickedAt:{type:Date,default:Date.now},
+    clickedAt:{type:Date,default:Date.now}
 });
 
 module.exports=mongoose.model('Clicks',clickSchema);

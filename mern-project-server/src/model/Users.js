@@ -55,7 +55,14 @@ const UsersSchema = new mongoose.Schema({
    Subscription:{                   // we are not creating separate table for this subscription we are adding the whole schema here only and default we are taking empty object 
       type:SubscriptionSchema,
       default:()=>({})
+   },
+   PasswordToken:{
+      type:String,
+   },
+   PasswordTokenExpiry:{
+      type:Date
    }
+
 });
 
 module.exports = mongoose.model('Users', UsersSchema);

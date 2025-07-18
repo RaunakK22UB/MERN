@@ -1,16 +1,18 @@
-import { useEffect,useState } from "react";
-import {Link} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import LinksDashboard from "./links/LinksDashboard";
 
 
-function Dashboard(){
+function Dashboard() {
 
-   
-    return(
+
+    return (
         <div className="container text-center">
             <h1>User Welcome!!!</h1>
-            <Link to ="/logout">Logout</Link>
-            <LinksDashboard/>
+            <Link to="/logout">Logout</Link>
+            <LinksDashboard />
+ 
+
         </div>
     );
 }

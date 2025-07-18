@@ -4,6 +4,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { useDispatch } from "react-redux";
 import { serverEndpoint } from "../config/config";
 import { SET_USER } from "../redux/user/actions";
+import { Link } from "react-router-dom";
 
 
 //function Login({updateUserDetails}) {  we will remove this prop as well 
@@ -182,6 +183,11 @@ function Login() {
                   {errors.password}
                 </div>
               )}
+            </div>
+            <div className="text-end mb-3">
+              <Link to="/forgot-password" className="small">
+                Forgot Password?
+              </Link>
             </div>
 
             <div className="d-grid">

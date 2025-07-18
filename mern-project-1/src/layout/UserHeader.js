@@ -54,7 +54,7 @@ function UserHeader() {
               <ul className="dropdown-menu dropdown-menu-end">
                 <li>
                   <Link className="dropdown-item" to="/logout">
-                    LogOut
+                    Log Out
                   </Link>
                 </li>
                 <Can permission="canViewUser">
@@ -68,6 +68,11 @@ function UserHeader() {
                   <li>
                     <Link className="dropdown-item" to="/manage-payments">
                       Manage Payments
+                    </Link>
+                  </li>
+                   <li>
+                    <Link className="dropdown-item" to="/reset-password">
+                       ResetPassword
                     </Link>
                   </li>
 
