@@ -198,7 +198,7 @@ const linksController = {
             const isDevelopment=process.env.NODE_ENV === "development";
             const ipAddress=isDevelopment ? '8.8.8.8' : request.headers['x-forward-for']?.split(',')[0] || request.socket.remoteAddress;
 
-            const geoResponse = await axios.get(`http://ip-api.com/json${ipAddress}`);
+            const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`);
             const {city,country,region,lat,lon,isp}=geoResponse.data;
 
             const userAgent=request.headers['user-agent']||'unknown';
@@ -212,7 +212,7 @@ const linksController = {
                 city:city,
                 country:country,
                 region:region,
-                lattitude:lat,
+                latitude:lat,
                 longitude:lon,
                 isp:isp,
                 referrer:referrer,
