@@ -66,9 +66,6 @@ cd MERN
 npm install
 npm run dev
 📸 Screenshots
-(Add screenshots here of the dashboard or features)
+![Analytics Dashboard](https://github.com/RaunakK22UB/MERN/blob/main/mern-project-1/public/image.png?raw=true)
 
-
-📜 License
-This project is licensed under the MIT License.
 
