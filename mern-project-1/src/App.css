@@ -1,3 +1,8 @@
+tml, body {
+  height: 100%;
+  overflow: hidden; /* 👈 Prevent scroll */
+}
+
 .App {
   text-align: center;
 }
@@ -36,3 +41,4 @@
     transform: rotate(360deg);
   }
 }
+

@@ -1,0 +1,15 @@
+#lights {
+  position: fixed; /* instead of absolute */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  z-index: -1; /* Keeps it behind everything */
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

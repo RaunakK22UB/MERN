@@ -1,21 +1,21 @@
 // src/pages/Logout.js
 
-// ✅ Changed: Moved axios import to top
+//Changed: Moved axios import to top
 import axios from "axios";
 
-// ✅ No change: Hooks
+//  No change: Hooks
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// 🟢 Before: import { serverEndpoint } from "../config"
-// ✅ Now: import from correct path
+//  Before: import { serverEndpoint } from "../config"
+// Now: import from correct path
 import { serverEndpoint } from "../config/config";
 
 import { useDispatch } from "react-redux";
 import { CLEAR_USER } from "../redux/user/actions";
 
-// 🟢 Before: function Logout({ updateUserDetails })
-// ✅ Now: props removed, using Redux dispatch
+//  Before: function Logout({ updateUserDetails })
+// Now: props removed, using Redux dispatch
 function Logout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -23,16 +23,20 @@ function Logout() {
   const handleLogout = async () => {
     try {
       await axios.post(`${serverEndpoint}/auth/logout`, {}, {
-        withCredentials: true, // ✅ Important for sending cookies
+        withCredentials: true, //  Important for sending cookies
       });
 
-      // 🟢 Before: updateUserDetails(null)
-      // ✅ Now: Clear user via Redux
+      //  Before: updateUserDetails(null)
+      //  Now: Clear user via Redux
+      document.cookie = `jwtToken=; 
+      expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+       document.cookie = `refreshToken=; 
+       expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       dispatch({
         type: CLEAR_USER,
       });
 
-      // ✅ Navigate to login or home after logout
+      // Navigate to login or home after logout
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -44,7 +48,7 @@ function Logout() {
     handleLogout();
   }, []);
 
-  // ✅ Return something to avoid React warnings
+  // Return something to avoid React warnings
   return null;
 }
 
