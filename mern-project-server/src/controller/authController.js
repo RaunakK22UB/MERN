@@ -72,7 +72,12 @@ const authController = {
     // ------------------ LOGOUT ------------------
     logout: (request, response) => {
         try{
-             response.clearCookie('jwtToken');
+             response.clearCookie('jwtToken',{
+                httpOnly:true,
+                secure:process.env.NODE_ENV === 'production',
+                path:'/',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax'
+             });
         response.status(200).json({ message: 'User is logged out' });
 
         }catch(error){
