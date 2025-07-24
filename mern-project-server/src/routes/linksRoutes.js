@@ -14,6 +14,6 @@ router.get('/', authorize('link:read'),linksController.getAll);
 router.get('/:id', authorize('link:read'),linksController.getById);
 router.put('/:id', authorize('link:update'),linksController.update);
 router.delete('/:id', authorize('link:delete'),linksController.delete);
-router.post('/generate-upload-signature',authorize('link:create'),linksController.createUploadSignature);
+router.post('/generate-upload-signature',authorize('link:create'),linksController.createUploadSignature);  // this is for the generating the signature for cloud verification
 
 module.exports = router;
