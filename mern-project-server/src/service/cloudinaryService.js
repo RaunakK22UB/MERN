@@ -1,3 +1,5 @@
+
+/// this is code is to interact with the colud to upload the file of thumbnail
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
