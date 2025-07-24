@@ -21,6 +21,24 @@ function LinksDashboard() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const permission = usePermission();
 
+    // this varibales ids for the pagination
+    const [ loading , setLoading] = useState(false);
+    const [currentPage,setCurrentPage]=useState(0);
+    const [pageSize,setPageSize]=useState(2);
+    const [searchQuery,setSearchQuery]=useState('');
+    const [totalRecords,setTotalRecords]=useState(0);
+    const [sortModel,setSortModel]=useState(
+        [
+            {field:"createdAt",sort:'desc'}
+        ]
+    );
+
+    // this are for -----------------------------------------------------------thumbnail
+   const [thumbnailFile,setThumbnailFile]=useState(null);
+   const [previewUrl,setPreviewUrl] = useState('')
+
+
+
     const handleShowDeleteModal = (linkId) => {
         setFormData({
             id: linkId
@@ -104,6 +122,7 @@ function LinksDashboard() {
         event.preventDefault();
 
         if (validate()) {
+            setLoading(true)
             const body = {
                 campaign_title: formData.campaignTitle,
                 original_url: formData.originalUrl,
@@ -113,6 +132,13 @@ function LinksDashboard() {
                 withCredentials: true
             };
             try {
+                // --------------------for thumbnail , check if it is presnt then upload it and get the url------------------
+                let thumbnailUrl ='';
+                if(thumbnailFile){
+                    thumbnailUrl= await uploadToCLoudinary(thumbnailFile);
+                    body.thumbnail= thumbnailUrl;
+                }
+                //----------------------------------------------------------------------------------------------
                 if (isEdit) {
                     await axios.put(
                         `${serverEndpoint}/links/${formData.id}`,
@@ -129,6 +155,11 @@ function LinksDashboard() {
                     originalUrl: "",
                     category: ""
                 });
+
+                //---------------------- after uploading make it null again , that varibale which was holding the file
+                setThumbnailFile(null);
+                setPreviewUrl('');
+                //-------------------------------------------
             } catch (error) {
                 setErrors({ message: 'Unable to add the Link, please try again' });
             } finally {
@@ -137,23 +168,67 @@ function LinksDashboard() {
         }
     };
 
+  // This function is going to return the step 7 URL from the cloudinary
+
+  const uploadToCLoudinary = async(file)=>{
+    const {data} = await axios.post(`${serverEndpoint}/links/generate-upload-signature`,{},{withCredentials:true});
+    const formData = new FormData(); // we are working with the file uplad to using this function
+      formData.append("file", file);
+      formData.append("signature", data.signature);
+      formData.append("api_key", data.apiKey);
+      formData.append("timestamp", data.timestamp);
+
+    const response = await axios.post(
+         `https://api.cloudinary.com/v1_1/${data.cloudName}/image/upload`,formData
+    );
+
+    return response.data.secure_url;
+
+  }
+// here we wil add the pagination logic
     const fetchLinks = async () => {
         try {
+               setLoading(true);
+               const sortField = sortModel[0] ?.field || 'createdAt';
+               const sortOrder = sortModel[0]?.sort ||'desc';
+
+               const params = {
+                currentPage:currentPage,
+                pageSize:pageSize,
+                searchQuery:searchQuery,
+                sortField:sortField,
+                sortOrder:sortOrder
+               };
+
             const response = await axios.get(`${serverEndpoint}/links`, {
+                params:params,
                 withCredentials: true
             });
-            setLinksData(response.data.data);
+            setLinksData(response.data.links);
+            setTotalRecords(response.data.total)
         } catch (error) {
             console.log(error);
             setErrors({ message: 'Unable to fetch links at the moment. Please try again' });
+        }finally{
+            setLoading(false);
         }
     };
-
+//anything mentioned in the dependency  if there any change occcores in any value
     useEffect(() => {
         fetchLinks();
-    }, []);
+    }, [currentPage,pageSize,searchQuery,sortModel]);
 
     const columns = [
+        { field: 'thumbnail', headerName: 'Thumbnail',sortable:false, flex: 1,rencderCell:(params)=>(
+             params.row.thumbnail? (
+                <img src={params.row.thumbnail} alt='thumnail' style={{maxHeight:'45px'}}/>
+             ):(
+                <span style={{color:'#888'}}>No Image To Display</span>
+             )
+        ) 
+    },
+
+
         { field: 'campaignTitle', headerName: 'Campaign', flex: 2 },
         {
             field: 'originalUrl', headerName: 'URL', flex: 3, renderCell: (params) => (
@@ -170,7 +245,7 @@ function LinksDashboard() {
         { field: 'category', headerName: 'Category', flex: 2 },
         { field: 'clickCount', headerName: 'Clicks', flex: 1 },
         {
-            field: 'action', headerName: 'Clicks', flex: 1, renderCell: (params) => (
+            field: 'action', headerName: 'Clicks', width:350,sortable:false, renderCell: (params) => (
                 <>
                     {permission.canEditLink && (
                         <IconButton>
@@ -194,6 +269,22 @@ function LinksDashboard() {
                 </>
             )
         },
+        {
+            field:'share',
+            headerName:'Share Affiliate Link',
+            sortable:false,
+            flex:1.5,
+            renderCell:(params)=>{
+                const shareUrl = `${serverEndpoint}/links/r/${params.row._id}`;
+                return(
+                    <button className='btn btn-outline-primary btn-sm' onClick={(e)=>{
+
+                        /// this is js method to copy any text to clipboard
+                        navigator.clipboard.writeText(shareUrl);
+                    }}>Copy</button>
+                )
+            }
+        }
     ];
 
     return (
@@ -213,6 +304,18 @@ function LinksDashboard() {
                 </div>
             )}
 
+  {/* //-------------------search bar for links */}
+            <div className="mb-2">
+                <input
+                     type='text' className='form-control'
+                     placeholder='Serch by campaign , Url, or catagories'
+                     onChange={(e)=>{
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(0); // rest to 0 on fresh search
+                     }}
+                />
+            </div>
+
             <div style={{ height: 500, width: '100%' }}>
                 <DataGrid
                     getRowId={(row) => row._id}
@@ -220,10 +323,26 @@ function LinksDashboard() {
                     columns={columns}
                     initialState={{
                         pagination: {
-                            paginationModel: { pageSize: 20, page: 0 }
+                            paginationModel: { pageSize:  pageSize, page: currentPage}
                         }
                     }}
-                    pageSizeOptions={[20, 50, 100]}
+                    pageSizeOptions={[2, 3, 4]}  
+                    paginationMode='server'
+                    onPaginationModelChange={(newPage)=>{
+                        setCurrentPage(newPage.page);
+                        setPageSize(newPage.pageSize);
+                    }}
+                    onPaginationMetaChange={(newPageSize)=>{
+                        setPageSize(newPageSize);
+                        setCurrentPage(0);
+                    }}
+                    rowCount={totalRecords}
+                    sortingMode='server'
+                    sortModel={sortModel}
+                    onSortModelChange={(newModel)=>{
+                        setSortModel(newModel);
+                        setCurrentPage(0);
+                    }}
                     disableRowSelectionOnClick
                     showToolbar
                     sx={{
@@ -291,6 +410,24 @@ function LinksDashboard() {
                                     {errors.category}
                                 </div>
                             )}
+                        </div>
+
+                        <div className='mb-2'>
+                            <label htmlFor='thumbnail'>Thumbnail</label>
+                            <input type ='file' accept='image/*'
+                               classname='form-control'
+                               onChange={(e)=>{
+                                      const file=e.target.files[0];
+                                      if(file){
+                                        setThumbnailFile(file);
+                                        setPreviewUrl(URL.createObjectURL(file));
+                                      }
+                               }}
+                               />
+                               {previewUrl && (
+                                <img src={previewUrl} alt='preview' className='img-responsive border rounded-2 ' style={{ maxHeight: '200px' }}
+                                />
+                               )}
                         </div>
 
                         <div className="d-grid">

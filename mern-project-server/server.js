@@ -7,6 +7,8 @@ const cors = require('cors'); // to handle CORS issues
 const linksRoutes = require('./src/routes/linksRoutes');
 const userRoutes = require('./src/routes/userRoutes')
 const paymentsRoutes = require ('./src/routes/paymentRoutes')
+
+
 mongoose.connect(process.env.MONGO_URL, )
 .then(()=> console.log('MongoDB is Connected Putar!!'))
 .catch((error)=>console.log(error));

@@ -41,6 +41,7 @@ function App() {
           withCredentials: true,
         }
       );
+      console.log(response.data.user);
       dispatch({
         type: SET_USER,
         payload: response.data.user,

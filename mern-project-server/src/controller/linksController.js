@@ -4,10 +4,11 @@ const Users = require("../model/Users");
 const axios= require('axios');
 const {getDeviceInfo} = require("../util/linkUtil");
 const Clicks = require("../model/Clicks");
+const { generateUploadSignature } = require("../service/cloudinaryService");
 
 const linksController = {
     create: async (request, response) => {
-        const { campaign_title, original_url, category } = request.body;
+        const { campaign_title, original_url, category, thumbnail } = request.body;
 
         try {
             // We're fetching user details from DB even though we have
@@ -31,6 +32,7 @@ const linksController = {
                 campaignTitle: campaign_title,
                 originalUrl: original_url,
                 category: category,
+                thumbnail :thumbnail ,
                 // users: request.user.id // Coming from middleware; AuthMiddleware
                 users: request.user.role === 'admin' ?
                     request.user.id : request.user.adminId 
@@ -54,16 +56,47 @@ const linksController = {
             });
         }
     },
-
+// ------------------------------------------------now we are goint to sdd the paggination logic  starting from getAll
     getAll: async (request, response) => {
         try {
+
+            // for pagination params , will coem like current page number, page size
+            const {
+                currentPage = 0, pageSize=0,
+                searchQuery='',//serching
+                sortField='createdAt',//sorting
+                sortOrder='desec' //sorting
+            }= request.query;
+             
+        // now to search we had to create the mongodb querry
             const userId = request.user.role === 'admin' ?
                 request.user.id : request.user.adminId; 
 
+
+            const skip = parseInt(currentPage) * parseInt(pageSize);
+            const limit = parseInt(pageSize);
+            const sort = {[sortField]: sortOrder === 'desc'?-1:1};
+
+            // creating the querry
+            const query={
+                users:userId
+
+            };
+
+            if(searchQuery){
+                query.$or=[
+                    {campaignTitle: new RegExp(searchQuery,'i')},
+                    {originalUrl: new RegExp(searchQuery,'i')},
+                    {category: new RegExp(searchQuery,'i')},
+                ]
+            }
+
             const links = await Links
-                .find({ users: userId }) 
-                .sort({ createdAt: -1 });
-            response.json({ data: links });
+                .find(query) 
+                .sort(sort).skip(skip).limit(limit);
+
+                const total = await Links.countDocuments(query)
+            response.json({ links,total });
         } catch (error) {
             console.log(error);
             response.status(500).json({
@@ -129,11 +162,12 @@ const linksController = {
                 });
             }
 
-            const { campaign_title, original_url, category } = request.body;
+            const { campaign_title, original_url, category, thumbnail } = request.body;
             link = await Links.findByIdAndUpdate(linkId, {
                 campaignTitle: campaign_title,
                 originalUrl: original_url,
-                category: category
+                category: category,
+                thumbnail :thumbnail 
             }, { new: true }); // new: true flag makes sure mongodb returns updated data after the update operation
 
             // Return updated link data
@@ -269,6 +303,22 @@ const linksController = {
             response.status(400).json({
                 message:"Internal server error"
             });
+        }
+    },
+// ----------------the server is going to create a temprory signature for cloudinary to verify this signature
+    createUploadSignature: async(request,response)=>{
+        try{
+            const {signature,timestamp}=generateUploadSignature();
+            response.json({
+                signature:signature,
+                timestamp:timestamp,
+                apiKey:process.env.CLOUDINARY_API_KEY,
+                cloudName:process.env.CLOUD_NAME
+
+            })
+
+        }catch(error){
+            response.status.json({message:'Internal server error'})
         }
     }
 };
